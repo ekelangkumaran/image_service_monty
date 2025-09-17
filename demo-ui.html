@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Service Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 10px;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 20px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.2em;
+            font-weight: normal;
+        }
+
+        .header .status {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            overflow: hidden;
+        }
+
+        .section {
+            border: 1px solid #ddd;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section h2 {
+            font-size: 0.95em;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8em;
+            margin-bottom: 2px;
+            color: #666;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 4px 6px;
+            border: 1px solid #ddd;
+            font-size: 0.85em;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+        }
+
+        .result {
+            margin-top: 8px;
+            padding: 8px;
+            font-size: 0.75em;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            overflow-y: auto;
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .result.error {
+            background: #fee;
+            border-color: #fcc;
+            color: #800;
+        }
+
+        .image-list {
+            overflow-y: auto;
+            flex: 1;
+            margin-top: 8px;
+        }
+
+        .image-item {
+            padding: 6px;
+            border: 1px solid #eee;
+            margin-bottom: 4px;
+            font-size: 0.8em;
+            background: #fafafa;
+        }
+
+        .image-item p {
+            margin: 2px 0;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 4px 6px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            font-size: 0.85em;
+            cursor: pointer;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Image Service API Test Interface</h1>
+            <span class="status">LocalStack Testing Environment</span>
+        </div>
+
+        <div class="main-content">
+            
+            <div class="section">
+                <h2>Upload</h2>
+                <div class="form-group">
+                    <label>File</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="imageFile" class="file-input" accept="image/*">
+                        <div class="file-input-label" id="fileLabel">Choose file</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" id="userId" value="user123">
+                </div>
+                <div class="form-group">
+                    <label>Tags</label>
+                    <input type="text" id="tags" placeholder="tag1,tag2">
+                </div>
+                <button onclick="uploadImage()">Upload</button>
+                <div id="uploadResult" class="result"></div>
+            </div>
+
+            
+            <div class="section">
+                <h2>List Images</h2>
+                <div class="form-group">
+                    <label>Filter User ID</label>
+                    <input type="text" id="filterUserId" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>Filter Tags</label>
+                    <input type="text" id="filterTags" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>Limit</label>
+                    <input type="number" id="limit" value="10" min="1" max="100">
+                </div>
+                <button onclick="listImages()">List</button>
+                <div id="listResult" class="image-list"></div>
+            </div>
+
+            
+            <div class="section">
+                <h2>Get Image</h2>
+                <div class="form-group">
+                    <label>Image ID</label>
+                    <input type="text" id="getImageId" placeholder="Enter image ID">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="downloadData"> Include data
+                    </label>
+                </div>
+                <button onclick="getImage()">Get</button>
+                <div id="getResult" class="result"></div>
+            </div>
+
+            
+            <div class="section">
+                <h2>Delete Image</h2>
+                <div class="form-group">
+                    <label>Image ID</label>
+                    <input type="text" id="deleteImageId" placeholder="Enter image ID">
+                </div>
+                <button onclick="deleteImage()" class="delete-btn">Delete</button>
+                <div id="deleteResult" class="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        const API_BASE_URL = 'http:
+
+        
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'Choose file';
+            document.getElementById('fileLabel').textContent = fileName;
+        });
+
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageFile');
+            if (!fileInput.files[0]) {
+                document.getElementById('uploadResult').textContent = 'Error: No file selected';
+                document.getElementById('uploadResult').className = 'result error';
+                return;
+            }
+
+            try {
+                
+                const reader = new FileReader();
+                reader.onloadend = async function() {
+                    const base64Data = reader.result.split(',')[1];
+
+                    const response = await fetch(`${API_BASE_URL}/images`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            image_data: base64Data,
+                            user_id: document.getElementById('userId').value || 'anonymous',
+                            tags: document.getElementById('tags').value || ''
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        document.getElementById('uploadResult').textContent =
+                            `Success\nID: ${data.image_id}\nUser: ${data.metadata.user_id}\nTags: ${data.metadata.tags}`;
+                        document.getElementById('uploadResult').className = 'result';
+
+                        
+                        document.getElementById('getImageId').value = data.image_id;
+                        document.getElementById('deleteImageId').value = data.image_id;
+
+                        
+                        fileInput.value = '';
+                        document.getElementById('fileLabel').textContent = 'Choose file';
+
+                        
+                        listImages();
+                    } else {
+                        document.getElementById('uploadResult').textContent = `Error: ${data.error || 'Upload failed'}`;
+                        document.getElementById('uploadResult').className = 'result error';
+                    }
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } catch (error) {
+                document.getElementById('uploadResult').textContent = `Error: ${error.message}`;
+                document.getElementById('uploadResult').className = 'result error';
+            }
+        }
+
+        async function listImages() {
+            try {
+                const params = new URLSearchParams();
+                const userId = document.getElementById('filterUserId').value;
+                const tags = document.getElementById('filterTags').value;
+                const limit = document.getElementById('limit').value;
+
+                if (userId) params.append('user_id', userId);
+                if (tags) params.append('tags', tags);
+                if (limit) params.append('limit', limit);
+
+                const response = await fetch(`${API_BASE_URL}/images?${params.toString()}`);
+                const data = await response.json();
+
+                const resultDiv = document.getElementById('listResult');
+                if (data.images && data.images.length > 0) {
+                    resultDiv.innerHTML = data.images.map(img =>
+                        `<div class="image-item">
+                            <p><strong>${img.image_id}</strong></p>
+                            <p>User: ${img.user_id}</p>
+                            <p>Tags: ${img.tags || 'none'}</p>
+                        </div>`
+                    ).join('');
+                } else {
+                    resultDiv.innerHTML = '<div class="image-item">No images found</div>';
+                }
+            } catch (error) {
+                document.getElementById('listResult').innerHTML =
+                    `<div class="image-item">API Error: ${error.message}</div>`;
+            }
+        }
+
+        async function getImage() {
+            const imageId = document.getElementById('getImageId').value;
+            if (!imageId) {
+                document.getElementById('getResult').textContent = 'Error: Image ID required';
+                document.getElementById('getResult').className = 'result error';
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams();
+                if (document.getElementById('downloadData').checked) {
+                    params.append('download', 'true');
+                }
+
+                const response = await fetch(`${API_BASE_URL}/images/${imageId}?${params.toString()}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    let result = `Found: ${data.image_id}\nUser: ${data.metadata.user_id}\nTags: ${data.metadata.tags}`;
+
+                    if (data.image_data) {
+                        result += `\nData: ${data.image_data.substring(0, 50)}...`;
+                    } else if (data.download_url) {
+                        result += `\nURL: ${data.download_url}`;
+                    }
+
+                    document.getElementById('getResult').textContent = result;
+                    document.getElementById('getResult').className = 'result';
+                } else {
+                    document.getElementById('getResult').textContent = `Error: ${data.error || 'Not found'}`;
+                    document.getElementById('getResult').className = 'result error';
+                }
+            } catch (error) {
+                document.getElementById('getResult').textContent = `Error: LocalStack not running`;
+                document.getElementById('getResult').className = 'result error';
+            }
+        }
+
+        async function deleteImage() {
+            const imageId = document.getElementById('deleteImageId').value;
+            if (!imageId) {
+                document.getElementById('deleteResult').textContent = 'Error: Image ID required';
+                document.getElementById('deleteResult').className = 'result error';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/images/${imageId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('deleteResult').textContent = `Deleted: ${data.image_id}`;
+                    document.getElementById('deleteResult').className = 'result';
+
+                    
+                    document.getElementById('deleteImageId').value = '';
+
+                    
+                    listImages();
+                } else {
+                    document.getElementById('deleteResult').textContent = `Error: ${data.error || 'Delete failed'}`;
+                    document.getElementById('deleteResult').className = 'result error';
+                }
+            } catch (error) {
+                document.getElementById('deleteResult').textContent = `Error: LocalStack not running`;
+                document.getElementById('deleteResult').className = 'result error';
+            }
+        }
+
+        
+        window.addEventListener('load', function() {
+            listImages();
+        });
+    </script>
+</body>
+</html>

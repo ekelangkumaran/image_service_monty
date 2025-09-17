@@ -3,6 +3,11 @@ List of tasks to be Done.
 1. setup open stack 
     initialize all service (s3,dynamodb)
     create api gateway and Lambda definitions
-2. write the core apis
-3. start with basic test cases
-4. minimal UI to test complete flow
+2. write the core apis.
+3. minimal UI to test flow.
+
+Pending:
+
+Test cases
+documentation
+some more scripts
