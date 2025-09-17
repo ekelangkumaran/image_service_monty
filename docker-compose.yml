@@ -1,0 +1,14 @@
+services:
+  localstack:
+    container_name: instagram-localstack
+    image: localstack/localstack:2.0
+    ports:
+      - "4566:4566"
+    environment:
+      - DEBUG=0
+      - SERVICES=lambda,s3,dynamodb,apigateway
+      - LAMBDA_EXECUTOR=local
+      - LAMBDA_RUNTIME_ENVIRONMENT_TIMEOUT=300
+    volumes:
+      - ./localstack-data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
