@@ -1,0 +1,69 @@
+API Documentation
+
+Base URL:
+http://localhost:4566/restapis/{api_id}/dev/_user_request_
+
+Endpoints:
+
+Upload Image
+POST /images
+
+Body:
+{
+  "image_data": "base64_string",
+  "user_id": "user123",
+  "tags": "nature,photo"
+}
+
+Response:
+{
+  "image_id": "abc-123",
+  "metadata": {...}
+}
+
+List Images
+GET /images?user_id=user123&tags=nature&limit=10
+
+Response:
+{
+  "images": [...],
+  "count": 5
+}
+
+Get Image
+GET /images/{id}?download=true
+
+Response:
+{
+  "image_id": "abc-123",
+  "metadata": {...},
+  "download_url": "https://..."
+}
+
+Delete Image
+DELETE /images/{id}
+
+Response:
+{
+  "message": "Image deleted successfully"
+}
+
+Usage:
+
+1. Start services: ./start-services.sh
+2. Open demo-ui.html for interactive testing
+3. Use curl for direct API calls
+
+Examples:
+
+# Upload
+curl -X POST .../images -d '{"image_data":"...","user_id":"test"}'
+
+# List
+curl .../images?user_id=test
+
+# Get
+curl .../images/abc-123
+
+# Delete
+curl -X DELETE .../images/abc-123
